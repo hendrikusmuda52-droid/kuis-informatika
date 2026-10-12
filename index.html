@@ -4,76 +4,185 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CyberQuest: Profil Belajar & Dashboard Guru</title>
+  
+  <!-- CDN Libraries -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex flex-col items-center justify-center font-sans">
 
-  <!-- Tombol Login Guru Top Bar -->
-  <div class="fixed top-4 left-4 z-50">
-    <button onclick="openTeacherModal()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-amber-500/40 rounded-xl text-xs font-bold text-amber-400 flex items-center gap-2 shadow-lg">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: radial-gradient(circle at top right, #1e1b4b, #0f172a, #020617);
+      color: #f8fafc;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-3 md:p-6 overflow-x-hidden selection:bg-amber-500 selection:text-slate-900">
+
+  <!-- Top Controls: Audio & Mode Guru -->
+  <div class="fixed top-4 right-4 z-50 flex items-center gap-2">
+    <button onclick="openTeacherModal()" class="px-3 py-2 bg-slate-800/90 hover:bg-slate-700 border border-amber-500/40 rounded-xl text-xs font-bold text-amber-400 flex items-center gap-2 shadow-lg">
       <i data-lucide="shield-check" class="w-4 h-4"></i> Mode Guru
+    </button>
+    <button id="audio-toggle" onclick="toggleAudio()" class="p-2.5 bg-slate-800/90 hover:bg-slate-700 rounded-xl border border-amber-500/30 text-amber-400 transition shadow-lg">
+      <i data-lucide="volume-x" id="audio-icon" class="w-4 h-4"></i>
     </button>
   </div>
 
-  <!-- Container Game Siswa -->
-  <div id="game-container" class="w-full max-w-xl bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-2xl relative">
-    <div id="screen-start" class="text-center space-y-4">
-      <h1 class="text-2xl font-black text-amber-400">CYBERQUEST INFORMATIKA</h1>
-      <p class="text-xs text-slate-400">Isi identitasmu untuk memulai kuis diagnostik 50 pertanyaan!</p>
-      <input id="input-name" type="text" placeholder="Nama Lengkap" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none focus:border-amber-400">
-      <input id="input-class" type="text" placeholder="Kelas (contoh: 8-A)" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none focus:border-amber-400">
-      <button onclick="startGame()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-sm">MULAI GAME 🚀</button>
-    </div>
-
-    <div id="screen-quiz" class="hidden space-y-4">
-      <div class="flex justify-between text-xs text-amber-400 font-bold">
-        <span id="text-step">Misi 1/50</span>
-        <span id="text-percent">0%</span>
+  <div id="game-container" class="w-full max-w-2xl glass-card rounded-3xl p-5 md:p-8 shadow-2xl relative border border-slate-700/80 my-auto">
+    
+    <!-- SCREEN 1: START -->
+    <div id="screen-start" class="text-center space-y-6">
+      <div class="inline-block p-4 bg-amber-500/10 rounded-2xl border border-amber-500/30 mb-1">
+        <i data-lucide="gamepad-2" class="w-12 h-12 text-amber-400 mx-auto animate-bounce"></i>
       </div>
-      <h2 id="text-question" class="text-sm font-bold text-slate-200">Pertanyaan...</h2>
-      <div id="container-options" class="space-y-2"></div>
+      <div>
+        <h1 class="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-300">
+          CYBERQUEST: PROFIL HERO
+        </h1>
+        <p class="text-slate-300 text-xs md:text-sm mt-2 max-w-md mx-auto leading-relaxed">
+          Selesaikan 50 Misi Interaktif (Swipe, Slider, Ranker & Role Cards) untuk membuka profil gaya belajarmu di Akademi Informatika!
+        </p>
+      </div>
+
+      <div class="space-y-4 max-w-sm mx-auto text-left pt-2">
+        <div>
+          <label class="text-xs font-extrabold text-amber-400 uppercase tracking-wider mb-1 block">Nama Hero / Siswa</label>
+          <input id="input-name" type="text" placeholder="Ketik namamu..." class="w-full p-3 bg-slate-900/90 rounded-xl border border-slate-700 text-white outline-none focus:border-amber-400 transition text-sm">
+        </div>
+
+        <div>
+          <label class="text-xs font-extrabold text-amber-400 uppercase tracking-wider mb-1 block">Kelas</label>
+          <input id="input-class" type="text" placeholder="Contoh: 8-A" class="w-full p-3 bg-slate-900/90 rounded-xl border border-slate-700 text-white outline-none focus:border-amber-400 transition text-sm">
+        </div>
+
+        <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2 text-base">
+          <span>MULAI PETUALANGAN</span>
+          <i data-lucide="zap" class="w-5 h-5 fill-slate-950"></i>
+        </button>
+      </div>
     </div>
 
-    <div id="screen-result" class="hidden text-center space-y-3">
-      <h2 class="text-xl font-black text-emerald-400">Misi Selesai! 🎉</h2>
-      <p class="text-xs text-slate-300">Jawabanmu sudah tersimpan di database guru.</p>
+    <!-- SCREEN 2: GAMEPLAY QUIZ -->
+    <div id="screen-quiz" class="hidden space-y-5">
+      <div class="space-y-2">
+        <div class="flex justify-between items-center text-xs font-bold">
+          <span id="badge-category" class="px-3 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/40 rounded-full">Kategori</span>
+          <span id="text-xp" class="text-amber-400 flex items-center gap-1 font-mono text-sm">
+            <i data-lucide="award" class="w-4 h-4 text-amber-400"></i> 0 XP
+          </span>
+        </div>
+        
+        <div class="w-full bg-slate-900/90 h-3 rounded-full overflow-hidden p-0.5 border border-slate-800">
+          <div id="progress-bar" class="bg-gradient-to-r from-amber-500 to-yellow-300 h-full rounded-full transition-all duration-300 w-0"></div>
+        </div>
+
+        <div class="flex justify-between text-[11px] text-slate-300 font-bold">
+          <span id="text-step">Misi 1 dari 50</span>
+          <span id="text-percent" class="text-amber-400">0% Selesai</span>
+        </div>
+      </div>
+
+      <div id="quiz-card" class="bg-slate-900/80 p-5 md:p-6 rounded-2xl border border-slate-800 min-h-[280px] flex flex-col justify-center relative overflow-hidden">
+        <h2 id="text-question" class="text-base md:text-lg font-bold text-slate-100 leading-relaxed mb-4">
+          Pertanyaan...
+        </h2>
+        <div id="interactive-container" class="w-full"></div>
+      </div>
+
+      <div class="flex items-center justify-between gap-3 pt-1">
+        <button id="btn-back" onclick="navigate(-1)" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 disabled:opacity-30 disabled:cursor-not-allowed">
+          <i data-lucide="chevron-left" class="w-4 h-4"></i> Kembali
+        </button>
+        <button onclick="skipQuestion()" class="px-3 py-2.5 bg-slate-800/60 hover:bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold border border-slate-700">
+          Lewati
+        </button>
+        <button id="btn-next" onclick="navigate(1)" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-md">
+          Lanjut <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+      </div>
     </div>
+
+    <!-- SCREEN 3: RESULT CARD -->
+    <div id="screen-result" class="hidden text-center space-y-6">
+      <div class="p-4 bg-emerald-500/20 border border-emerald-500/40 rounded-full w-20 h-20 mx-auto flex items-center justify-center animate-pulse">
+        <i data-lucide="trophy" class="w-10 h-10 text-emerald-400"></i>
+      </div>
+      <div>
+        <h2 class="text-2xl md:text-3xl font-black text-white">Misi Selesai! 🎉</h2>
+        <p class="text-slate-300 text-xs mt-1">Data Superpower Belajarmu berhasil terkirim ke Database Guru!</p>
+      </div>
+
+      <div class="glass-card p-6 rounded-2xl border border-amber-500/40 text-left space-y-4 bg-gradient-to-b from-slate-900/90 to-slate-900/60">
+        <div class="flex justify-between items-start border-b border-slate-800 pb-3">
+          <div>
+            <span class="text-[10px] uppercase font-extrabold text-amber-400 tracking-wider block">Identitas Hero</span>
+            <h3 id="res-name" class="text-lg font-bold text-white">Nama Siswa</h3>
+            <p id="res-class" class="text-xs text-slate-300">Kelas --</p>
+          </div>
+          <span class="px-3 py-1 bg-amber-500 text-slate-950 font-black text-xs rounded-full">LVL 50 MASTER</span>
+        </div>
+        <div>
+          <span class="text-[10px] uppercase font-extrabold text-slate-400 tracking-wider block mb-1">Tipe Gaya Belajar Dominan</span>
+          <h4 class="text-xl font-black text-emerald-400">Visual-Practical Strategist</h4>
+          <p class="text-xs text-slate-200 leading-relaxed mt-2">
+            Kamu paling cepat menyerap informasi lewat praktik langsung di komputer, simulasi visual, dan pengerjaan proyek konkret!
+          </p>
+        </div>
+      </div>
+
+      <button onclick="location.reload()" class="w-full py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs transition border border-slate-700">
+        Ulangi Game
+      </button>
+    </div>
+
   </div>
 
-  <!-- Modal Login Guru -->
-  <div id="modal-teacher" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-amber-500/30 p-6 rounded-2xl w-full max-w-md relative space-y-4">
-      <button onclick="closeTeacherModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
-      <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2">
-        <i data-lucide="lock" class="w-5 h-5"></i> Akses Portal Guru
-      </h3>
+  <!-- MODAL DASHBOARD GURU -->
+  <div id="modal-teacher" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/40 p-6 rounded-2xl w-full max-w-xl relative space-y-4 shadow-2xl">
+      <button onclick="closeTeacherModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg font-bold">✕</button>
       
+      <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+        <i data-lucide="shield" class="w-5 h-5"></i> Portal Panel Guru
+      </h3>
+
+      <!-- Form Login Guru -->
       <div id="teacher-login-form" class="space-y-3">
-        <input id="teacher-pass" type="password" placeholder="Masukkan Password Guru" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white outline-none">
+        <p class="text-xs text-slate-300">Masukkan kata sandi guru untuk melihat dan mengunduh jawaban siswa:</p>
+        <input id="teacher-pass" type="password" placeholder="Masukkan Password Guru" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white outline-none focus:border-amber-400">
         <button onclick="verifyTeacherPass()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs">MASUK DASHBOARD</button>
         <button onclick="forgotPassword()" class="w-full text-center text-xs text-slate-400 hover:underline">Lupa Password?</button>
       </div>
 
-      <!-- Dashboard Hasil Siswa -->
+      <!-- Dashboard Data Siswa -->
       <div id="teacher-dashboard" class="hidden space-y-4">
-        <div class="flex justify-between items-center">
-          <span class="text-xs text-slate-300 font-bold">Data Hasil Siswa</span>
-          <button onclick="exportToExcel()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center gap-1">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+          <span class="text-xs text-amber-400 font-bold">Data Respon Siswa (Real-Time)</span>
+          <button onclick="exportToExcel()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow">
             <i data-lucide="download" class="w-4 h-4"></i> Unduh Excel (.xlsx)
           </button>
         </div>
-        <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl">
+
+        <div class="max-h-72 overflow-y-auto border border-slate-800 rounded-xl">
           <table class="w-full text-left text-xs text-slate-300">
             <thead class="bg-slate-800 text-amber-400 sticky top-0">
               <tr>
-                <th class="p-2">Nama</th>
-                <th class="p-2">Kelas</th>
-                <th class="p-2">Hasil</th>
+                <th class="p-2.5">Waktu</th>
+                <th class="p-2.5">Nama</th>
+                <th class="p-2.5">Kelas</th>
+                <th class="p-2.5">Ringkasan</th>
               </tr>
             </thead>
             <tbody id="table-body-responses"></tbody>
@@ -84,114 +193,80 @@
   </div>
 
   <script>
+    // 1. SUPABASE CONNECTION
     const SUPABASE_URL = 'https://umzuvwyefzfoonurykon.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_ZuLbNeARGKVHjB2jVQjrAQ_QF-4p2c1';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Password Guru Default
-    let teacherPassword = localStorage.getItem('teacher_pass') || 'guru123';
+    // 2. CREDENTIALS GURU
+    let teacherPassword = localStorage.getItem('teacher_pass') || 'guru2026';
     const teacherEmail = 'hendrikusmuda52@guru.smp.belajar.id';
 
-    const questions = Array.from({length: 50}, (_, i) => ({
-      id: i + 1,
-      text: `Pertanyaan Misi ${i + 1}: Pilihan strategi belajar terbaikmu?`,
-      opts: ["A. Praktik Komputer", "B. Gambar & Video", "C. Diskusi Kelompok", "D. Membaca Teks"]
-    }));
+    // 3. AUDIO SYNTHESIZER
+    let audioCtx = null;
+    let audioEnabled = false;
 
-    let currentIdx = 0;
-    let userAnswers = {};
-    let studentInfo = {};
-    let fetchedData = [];
-
-    function startGame() {
-      const name = document.getElementById('input-name').value;
-      const cls = document.getElementById('input-class').value;
-      if(!name || !cls) return alert('Isi Nama dan Kelas!');
-      studentInfo = { name, class: cls };
-      document.getElementById('screen-start').classList.add('hidden');
-      document.getElementById('screen-quiz').classList.remove('hidden');
-      renderQ();
+    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    function playSound(freq = 440, type = 'sine', duration = 0.1) {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
     }
 
-    function renderQ() {
-      const q = questions[currentIdx];
-      document.getElementById('text-step').innerText = `Misi ${currentIdx + 1}/50`;
-      document.getElementById('text-percent').innerText = `${Math.round(((currentIdx+1)/50)*100)}%`;
-      document.getElementById('text-question').innerText = q.text;
-      const container = document.getElementById('container-options');
-      container.innerHTML = '';
-      q.opts.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.className = "w-full p-3 bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-left text-xs font-semibold rounded-xl border border-slate-700 transition";
-        btn.innerText = opt;
-        btn.onclick = () => {
-          userAnswers[`q_${q.id}`] = opt;
-          if(currentIdx < 49) { currentIdx++; renderQ(); } else { submitData(); }
-        };
-        container.appendChild(btn);
-      });
+    function toggleAudio() {
+      initAudio();
+      audioEnabled = !audioEnabled;
+      document.getElementById('audio-icon').setAttribute('data-lucide', audioEnabled ? 'volume-2' : 'volume-x');
+      lucide.createIcons();
+      if(audioEnabled) playSound(600, 'triangle', 0.15);
     }
 
-    async function submitData() {
-      document.getElementById('screen-quiz').classList.add('hidden');
-      document.getElementById('screen-result').classList.remove('hidden');
-      await supabaseClient.from('responses').insert([{
-        student_name: studentInfo.name,
-        student_class: studentInfo.class,
-        answers: userAnswers,
-        learning_style_summary: "Visual-Practical Strategist"
-      }]);
-    }
+    // 4. 50 BERBAGAI SOAL BERGAMBAR & MEKANIK VARIATIF
+    const questions = [
+      { id: 1, type: "cards", cat: "Minat", text: "Pilih Role Card yang paling menggambarkan energimu hari ini!", opts: ["⚡ Si Paling Gerak", "🧠 Pemikir Santai", "🎨 Si Kreatif Visual", "🎧 Pengamat Setia"] },
+      { id: 2, type: "cards", cat: "Minat", text: "Kapan biasanya kamu merasa paling berenergi untuk belajar?", opts: ["🌅 Pagi hari saat segar", "☀️ Siang menjelang sore", "🌙 Malam hari yang tenang", "🎭 Tergantung suasana hati"] },
+      { id: 3, type: "slider", cat: "Minat", text: "Tarik slider energi ini untuk mengukur seberapa antusias kamu menyambut pelajaran Informatika!", minLabel: "😴 Kurang Pede", maxLabel: "🚀 Antusias Banget!" },
+      { id: 4, type: "cards", cat: "Minat", text: "Aktivitas apa yang paling sering membuatmu lupa waktu?", opts: ["Main Game/Gawai", "Gambar/Seni/Desain", "Olahraga/Aktivitas Fisik", "Baca Story/Nonton Video"] },
+      { id: 5, type: "cards", cat: "Minat", text: "Konten media sosial/YouTube seperti apa yang paling kamu sukai?", opts: ["Tutorial/Cara Kerja", "Hiburan/Lucu", "Game & Teknologi", "Seni/Musik/Estetik"] },
+      { id: 6, type: "cards", cat: "Minat", text: "Bidang apa yang menurutmu paling 'kamu banget'?", opts: ["Teknologi & Komputer", "Seni & Kreativitas", "Olahraga & Fisik", "Sains & Angka"] },
+      { id: 7, type: "swipe", cat: "Minat", text: "Apakah kamu suka tantangan teka-teki logika yang rumit?", leftLabel: "❌ Kurang Suka", rightLabel: "✅ Suka Banget!" },
+      { id: 8, type: "cards", cat: "Minat", text: "Pelajaran seperti apa yang paling kamu impikan?", opts: ["Banyak Praktik Komputer", "Penuh Ilustrasi/Video", "Banyak Aktivitas Fisik", "Diskusi Santai Tanpa Teori Berat"] },
+      { id: 9, type: "cards", cat: "Minat", text: "Apa alasan utamamu ingin menguasai Komputer/Informatika?", opts: ["Bisa Bikin Karya/Kreativitas", "Persiapan Karir Masa Depan", "Suka Mengotak-Atik Teknologi", "Ikut-Ikutan Teman"] },
+      { id: 10, type: "slider", cat: "Minat", text: "Berapa persen rasa percaya dirimu saat menyelesaikan tugas sulit sendirian?", minLabel: "0% Butuh Bantuan", maxLabel: "100% Pede Banget" },
 
-    function openTeacherModal() { document.getElementById('modal-teacher').classList.remove('hidden'); }
-    function closeTeacherModal() { document.getElementById('modal-teacher').classList.add('hidden'); }
+      { id: 11, type: "cards", cat: "Gaya Belajar", text: "Saat guru menjelaskan materi baru, cara mana yang bikin paling cepat paham?", opts: ["👀 Melihat slide/gambar/video", "🎧 Mendengarkan penjelasan langsung", "🛠️ Langsung mencoba/praktekkan", "📖 Membaca ringkasan teks"] },
+      { id: 12, type: "cards", cat: "Gaya Belajar", text: "Ketika belajar aplikasi baru, apa langkah pertamamu?", opts: ["Langsung klik/otak-atik tombol", "Melihat tutorial video", "Meminta orang lain mengajari", "Membaca petunjuk tulisan"] },
+      { id: 13, type: "ranker", cat: "Gaya Belajar", text: "Geser & Urutkan media belajar favoritmu dari yang PALING kamu suka di urutan atas!", opts: ["Praktik Komputer", "Video/Diagram", "Penjelasan Lisan", "Catatan Teks"] },
+      { id: 14, type: "swipe", cat: "Gaya Belajar", text: "Apakah kamu lebih mudah ingat jika materi dibuat catatan warna-warni?", leftLabel: "❌ Tidak Efektif", rightLabel: "✅ Sangat Membantu" },
+      { id: 15, type: "cards", cat: "Gaya Belajar", text: "Apa yang paling mengganggu konsentrasimu di kelas?", opts: ["Suasana kelas bising", "Papan tulis/Slide berantakan", "Harus duduk diam terlalu lama", "Ruangan terlalu panas/silau"] },
+      { id: 16, type: "swipe", cat: "Gaya Belajar", text: "Apakah kamu lebih cepat paham jika materi dijelaskan dalam bentuk cerita/game?", leftLabel: "❌ Biasa Saja", rightLabel: "✅ Lebih Paham" },
+      { id: 17, type: "cards", cat: "Gaya Belajar", text: "Saat belajar di rumah, suasana seperti apa yang kamu suka?", opts: ["Harus Hening Total", "Sambil Dengar Musik Instrumental", "Sambil Dengar Musik Berlirik", "Bisa Belajar Di Mana Saja"] },
+      { id: 18, type: "cards", cat: "Gaya Belajar", text: "Bagaimana caramu mengingat lokasi/tempat baru?", opts: ["Mengingat bentuk bangunan/patokan visual", "Mengingat petunjuk arah kata-kata", "Mengingat rasa saat melewati jalan tersebut", "Harus Pakai Google Maps"] },
+      { id: 19, type: "cards", cat: "Gaya Belajar", text: "Di lab komputer, hal pertama yang menarik perhatianmu adalah...", opts: ["Tampilan layar & warna aplikasi", "Suara instruksi guru", "Sensasi mengetik keyboard/mouse", "Kemampuan komputer tersebut"] },
+      { id: 20, type: "cards", cat: "Gaya Belajar", text: "Bantuan apa yang paling kamu harapkan jika sulit mengerti materi?", opts: ["Bagan visual / Diagram ringkas", "Penjelasan ulang lisan yang pelan", "Contoh praktik konkret di komputer", "Diskusi privat dengan teman"] },
 
-    async function verifyTeacherPass() {
-      const input = document.getElementById('teacher-pass').value;
-      if(input === teacherPassword) {
-        document.getElementById('teacher-login-form').classList.add('hidden');
-        document.getElementById('teacher-dashboard').classList.remove('hidden');
-        loadStudentResponses();
-      } else {
-        alert('Password salah!');
-      }
-    }
+      { id: 21, type: "slider", cat: "Fokus & Gerak", text: "Berapa menit batas maksimal kamu bisa duduk diam mendengarkan teori tanpa merasa gelisah?", minLabel: "5 Menit", maxLabel: "30+ Menit" },
+      { id: 22, type: "cards", cat: "Fokus & Gerak", text: "Apa kebiasaanmu jika mulai merasa bosan di kelas?", opts: ["Coret-coret kertas / Menggambar", "Goyangkan kaki / Memutar pensil", "Mengajak teman bicara", "Melamun melihat keluar jendela"] },
+      { id: 23, type: "swipe", cat: "Fokus & Gerak", text: "Apakah kamu sering bertindak atau menjawab pertanyaan secara spontan?", leftLabel: "❌ Jarang/Pikir Dulu", rightLabel: "⚡ Ya, Sering Spontan" },
+      { id: 24, type: "cards", cat: "Fokus & Gerak", text: "Bagaimana perasaanmu jika suasana kelas sangat ramai & riuh?", opts: ["Tetap Santai", "Pusing & Cepat Lelah", "Sulit Fokus Sama Sekali", "Merasa Cemas"] },
+      { id: 25, type: "swipe", cat: "Fokus & Gerak", text: "Apakah suara bel sekolah keras atau lampu silau membuatmu sangat terganggu?", leftLabel: "❌ Biasa Saja", rightLabel: "⚠️ Sangat Terganggu" },
+      { id: 26, type: "cards", cat: "Fokus & Gerak", text: "Bagaimana perasaanmu jika jadwal/rencana pelajaran mendadak berubah?", opts: ["Santai Saja", "Butuh Waktu Menyesuaikan", "Bingung & Cemas", "Malah Senang"] },
+      { id: 27, type: "cards", cat: "Fokus & Gerak", text: "Tantangan terbesar saat mengerjakan tugas berlangkah panjang adalah...", opts: ["Lupa Urutan Langkah", "Bingung Mulai dari Mana", "Cepat Lelah di Tengah Jalan", "Teralihkan Hal Lain"] },
+      { id: 28, type: "swipe", cat: "Fokus & Gerak", text: "Saat berpikir keras, apakah kamu butuh memegang/memutar benda (pensil/fidget)?", leftLabel: "❌ Tidak Butuh", rightLabel: "✏️ Ya, Butuh Banget" },
+      { id: 29, type: "slider", cat: "Fokus & Gerak", text: "Ukur tingkat kecemasanmu jika dipanggil guru menjawab pertanyaan di depan umum!", minLabel: "😌 Santai", maxLabel: "😰 Cemas Banget" },
+      { id: 30, type: "cards", cat: "Fokus & Gerak", text: "Gaya jeda istirahat (Brain Break) apa yang paling bikin energimu pulih?", opts: ["Stretching / Peregangan Fisik", "Mendengarkan Musik 2 Menit", "Melamun / Cuci Muka", "Mengobrol Ringan"] },
 
-    function forgotPassword() {
-      alert(`Petunjuk Pemulihan Password:\nPassword bawaan Anda saat ini adalah: "${teacherPassword}".\nJika Anda ingin mengubahnya, password ini terasosiasi dengan akun email guru: ${teacherEmail}.`);
-    }
-
-    async function loadStudentResponses() {
-      const { data, error } = await supabaseClient.from('responses').select('*').order('created_at', { ascending: false });
-      if(data) {
-        fetchedData = data;
-        const tbody = document.getElementById('table-body-responses');
-        tbody.innerHTML = data.map(r => `
-          <tr class="border-b border-slate-800">
-            <td class="p-2 font-bold">${r.student_name}</td>
-            <td class="p-2">${r.student_class}</td>
-            <td class="p-2 text-emerald-400">${r.learning_style_summary || 'Visual'}</td>
-          </tr>
-        `).join('');
-      }
-    }
-
-    function exportToExcel() {
-      if(!fetchedData.length) return alert('Belum ada data siswa.');
-      const formatted = fetchedData.map(r => ({
-        Waktu: new Date(r.created_at).toLocaleString('id-ID'),
-        Nama: r.student_name,
-        Kelas: r.student_class,
-        Gaya_Belajar: r.learning_style_summary,
-        Jawaban_JSON: JSON.stringify(r.answers)
-      }));
-      const ws = XLSX.utils.json_to_sheet(formatted);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Hasil_Siswa");
-      XLSX.writeFile(wb, "Hasil_Asesmen_Siswa.xlsx");
-    }
-
-    window.onload = () => lucide.createIcons();
-  </script>
-</body>
-</html>
+      { id: 31, type: "cards", cat: "Sosial", text: "Dalam tim RPG kelompok, Role apa yang paling ingin kamu pegang?", opts: ["👑 Leader / Pengatur Tim", "💡 Pemikir Ide / Konsep", "🛠️ Eksekutor / Pembuat Karya", "📢 Presenter / Spokesman"] },
+      { id: 32, type: "cards", cat: "Sosial", text: "Kamu lebih suka cara kerja yang bagaimana?", opts: ["Mandiri / Sendirian", "Berpasangan dengan Teman Dekat", "Kelompok Kecil (3-4 Orang)", "Kelompok Besar"] },
+      { id: 33, type: "swipe", cat: "Sosial", text: "Jika teman kelompok tidak bekerja, apakah kamu lebih memilih mengerjakannya sendiri?", leftLabel: "❌ Tidak, Minta Guru", rightLabel: "💪 Ya, Mengerjakannya" },
+      { id: 34, type: "cards", cat: "Sosial", text: "Kepada siapa kamu
