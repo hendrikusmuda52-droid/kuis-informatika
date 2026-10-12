@@ -58,7 +58,7 @@
           CYBERQUEST: PROFIL HERO
         </h1>
         <p class="text-slate-300 text-xs md:text-sm mt-2 max-w-md mx-auto leading-relaxed">
-          Selesaikan 50 Misi Interaktif (Role Cards, Slider, Swipe, & Ranker) untuk membuka profil gaya belajarmu di Akademi Informatika!
+          Selesaikan Misi Interaktif (Role Cards, Slider, Swipe, & Ranker) untuk membuka profil gaya belajarmu di Akademi Informatika!
         </p>
       </div>
 
@@ -86,7 +86,7 @@
       </div>
     </div>
 
-    <!-- SCREEN 2: GAMEPLAY QUIZ (5 MEKANIK GAMIFIKASI INTERAKTIF) -->
+    <!-- SCREEN 2: GAMEPLAY QUIZ -->
     <div id="screen-quiz" class="hidden space-y-5">
       <!-- Progress Bar & Stats -->
       <div class="space-y-2">
@@ -101,9 +101,14 @@
           <div id="progress-bar" class="bg-gradient-to-r from-amber-500 to-yellow-300 h-full rounded-full transition-all duration-300 w-0"></div>
         </div>
 
-        <div class="flex justify-between text-[11px] text-slate-300 font-bold">
+        <div class="flex justify-between items-center text-[11px] text-slate-300 font-bold">
           <span id="text-step">Misi 1 dari 50</span>
-          <span id="text-percent" class="text-amber-400">0% Selesai</span>
+          <div class="flex items-center gap-3">
+            <button onclick="earlyFinish()" class="text-amber-400 hover:underline flex items-center gap-1 text-[11px] font-bold">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Selesaikan Sekarang
+            </button>
+            <span id="text-percent" class="text-amber-400">0% Selesai</span>
+          </div>
         </div>
       </div>
 
@@ -115,7 +120,7 @@
 
         <!-- DYNAMIC INTERACTIVE CONTAINER -->
         <div id="interactive-container" class="w-full">
-          <!-- Injected via JS based on question mechanic -->
+          <!-- Injected via JS -->
         </div>
       </div>
 
@@ -143,7 +148,7 @@
 
       <div>
         <h2 class="text-2xl md:text-3xl font-black text-white">Misi Selesai! 🎉</h2>
-        <p class="text-slate-300 text-xs mt-1">Data Superpower Belajarmu berhasil terkirim ke Database Supabase!</p>
+        <p id="supabase-status-text" class="text-slate-300 text-xs mt-1">Mengirim data ke database...</p>
       </div>
 
       <!-- Result Card Showcase -->
@@ -161,16 +166,21 @@
 
         <div>
           <span class="text-[10px] uppercase font-extrabold text-slate-400 tracking-wider block mb-1">Tipe Gaya Belajar Dominan</span>
-          <h4 id="res-title" class="text-xl font-black text-emerald-400">Visual-Practical Strategist</h4>
+          <h4 id="res-title" class="text-xl font-black text-emerald-400">Memproses...</h4>
           <p id="res-desc" class="text-xs text-slate-200 leading-relaxed mt-2">
-            Kamu paling cepat menyerap informasi lewat praktik langsung di komputer, simulasi visual, dan pengerjaan proyek konkret!
+            Deskripsi analisis gaya belajar berdasarkan pilihan jawabanmu.
           </p>
         </div>
       </div>
 
-      <button onclick="location.reload()" class="w-full py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs transition border border-slate-700">
-        Ulangi Game
-      </button>
+      <div class="flex gap-3">
+        <button id="btn-retry-submit" onclick="submitDataToSupabase()" class="hidden flex-1 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition">
+          🔄 Coba Kirim Ulang Data
+        </button>
+        <button onclick="location.reload()" class="flex-1 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs transition border border-slate-700">
+          Ulangi Game
+        </button>
+      </div>
     </div>
 
   </div>
@@ -221,7 +231,7 @@
     const SUPABASE_KEY = 'sb_publishable_ZuLbNeARGKVHjB2jVQjrAQ_QF-4p2c1';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 2. AUDIO SYNTHESIZER (WEB AUDIO API)
+    // 2. AUDIO SYNTHESIZER
     let audioCtx = null;
     let audioEnabled = false;
 
@@ -254,9 +264,8 @@
       if(audioEnabled) playSound(600, 'triangle', 0.15);
     }
 
-    // 3. 50 GAMIFIED QUESTIONS WITH MULTIPLE MECHANICS
+    // 3. 50 GAMIFIED QUESTIONS
     const questions = [
-      // Kategori 1: Minat & Motivasi (1-10)
       { id: 1, type: "cards", cat: "Minat", text: "Pilih Role Card yang paling menggambarkan energimu hari ini!", opts: ["⚡ Si Paling Gerak", "🧠 Pemikir Santai", "🎨 Si Kreatif Visual", "🎧 Pengamat Setia"] },
       { id: 2, type: "cards", cat: "Minat", text: "Kapan biasanya kamu merasa paling berenergi untuk belajar?", opts: ["🌅 Pagi hari saat segar", "☀️ Siang menjelang sore", "🌙 Malam hari yang tenang", "🎭 Tergantung suasana hati"] },
       { id: 3, type: "slider", cat: "Minat", text: "Tarik slider energi ini untuk mengukur seberapa antusias kamu menyambut pelajaran Informatika!", minLabel: "😴 Kurang Pede", maxLabel: "🚀 Antusias Banget!" },
@@ -268,7 +277,6 @@
       { id: 9, type: "cards", cat: "Minat", text: "Apa alasan utamamu ingin menguasai Komputer/Informatika?", opts: ["Bisa Bikin Karya/Kreativitas", "Persiapan Karir Masa Depan", "Suka Mengotak-Atik Teknologi", "Ikut-Ikutan Teman"] },
       { id: 10, type: "slider", cat: "Minat", text: "Berapa persen rasa percaya dirimu saat menyelesaikan tugas sulit sendirian?", minLabel: "0% Butuh Bantuan", maxLabel: "100% Pede Banget" },
 
-      // Kategori 2: Gaya Belajar (11-20)
       { id: 11, type: "cards", cat: "Gaya Belajar", text: "Saat guru menjelaskan materi baru, cara mana yang bikin paling cepat paham?", opts: ["👀 Melihat slide/gambar/video", "🎧 Mendengarkan penjelasan langsung", "🛠️ Langsung mencoba/praktekkan", "📖 Membaca ringkasan teks"] },
       { id: 12, type: "cards", cat: "Gaya Belajar", text: "Ketika belajar aplikasi baru, apa langkah pertamamu?", opts: ["Langsung klik/otak-atik tombol", "Melihat tutorial video", "Meminta orang lain mengajari", "Membaca petunjuk tulisan"] },
       { id: 13, type: "ranker", cat: "Gaya Belajar", text: "Geser & Urutkan media belajar favoritmu dari yang PALING kamu suka di urutan atas!", opts: ["Praktik Komputer", "Video/Diagram", "Penjelasan Lisan", "Catatan Teks"] },
@@ -280,7 +288,6 @@
       { id: 19, type: "cards", cat: "Gaya Belajar", text: "Di lab komputer, hal pertama yang menarik perhatianmu adalah...", opts: ["Tampilan layar & warna aplikasi", "Suara instruksi guru", "Sensasi mengetik keyboard/mouse", "Kemampuan komputer tersebut"] },
       { id: 20, type: "cards", cat: "Gaya Belajar", text: "Bantuan apa yang paling kamu harapkan jika sulit mengerti materi?", opts: ["Bagan visual / Diagram ringkas", "Penjelasan ulang lisan yang pelan", "Contoh praktik konkret di komputer", "Diskusi privat dengan teman"] },
 
-      // Kategori 3: Fokus & Neurodiversitas (21-30)
       { id: 21, type: "slider", cat: "Fokus & Gerak", text: "Berapa menit batas maksimal kamu bisa duduk diam mendengarkan teori tanpa merasa gelisah?", minLabel: "5 Menit", maxLabel: "30+ Menit" },
       { id: 22, type: "cards", cat: "Fokus & Gerak", text: "Apa kebiasaanmu jika mulai merasa bosan di kelas?", opts: ["Coret-coret kertas / Menggambar", "Goyangkan kaki / Memutar pensil", "Mengajak teman bicara", "Melamun melihat keluar jendela"] },
       { id: 23, type: "swipe", cat: "Fokus & Gerak", text: "Apakah kamu sering bertindak atau menjawab pertanyaan secara spontan?", leftLabel: "❌ Jarang/Pikir Dulu", rightLabel: "⚡ Ya, Sering Spontan" },
@@ -292,7 +299,6 @@
       { id: 29, type: "slider", cat: "Fokus & Gerak", text: "Ukur tingkat kecemasanmu jika dipanggil guru menjawab pertanyaan di depan umum!", minLabel: "😌 Santai", maxLabel: "😰 Cemas Banget" },
       { id: 30, type: "cards", cat: "Fokus & Gerak", text: "Gaya jeda istirahat (Brain Break) apa yang paling bikin energimu pulih?", opts: ["Stretching / Peregangan Fisik", "Mendengarkan Musik 2 Menit", "Melamun / Cuci Muka", "Mengobrol Ringan"] },
 
-      // Kategori 4: Interaksi Sosial (31-40)
       { id: 31, type: "cards", cat: "Sosial", text: "Dalam tim RPG kelompok, Role apa yang paling ingin kamu pegang?", opts: ["👑 Leader / Pengatur Tim", "💡 Pemikir Ide / Konsep", "🛠️ Eksekutor / Pembuat Karya", "📢 Presenter / Spokesman"] },
       { id: 32, type: "cards", cat: "Sosial", text: "Kamu lebih suka cara kerja yang bagaimana?", opts: ["Mandiri / Sendirian", "Berpasangan dengan Teman Dekat", "Kelompok Kecil (3-4 Orang)", "Kelompok Besar"] },
       { id: 33, type: "swipe", cat: "Sosial", text: "Jika teman kelompok tidak bekerja, apakah kamu lebih memilih mengerjakannya sendiri?", leftLabel: "❌ Tidak, Minta Guru", rightLabel: "💪 Ya, Mengerjakannya" },
@@ -304,7 +310,6 @@
       { id: 39, type: "cards", cat: "Sosial", text: "Hal apa yang paling bikin semangat berangkat ke sekolah?", opts: ["Ketemu Teman-Teman", "Pelajaran Praktik/Favorit", "Suasana Kelas Yang Seru", "Sangu / Uang Saku"] },
       { id: 40, type: "cards", cat: "Sosial", text: "Suasana kelas impianmu seperti apa?", opts: ["Santai Tapi Fokus", "Penuh Diskusi & Tawa", "Hening & Serius", "Banyak Aktivitas Game/Praktik"] },
 
-      // Kategori 5: Harapan & Akses (41-50)
       { id: 41, type: "cards", cat: "Harapan", text: "Format tugas akhir seperti apa yang paling kamu sukai?", opts: ["Praktik Langsung Komputer", "Infografis / Poster Gambar", "Video / Rekaman Audio", "Laporan Tulisan/Dokumen"] },
       { id: 42, type: "cards", cat: "Harapan", text: "Bentuk pendampingan guru yang paling kamu butuhkan?", opts: ["Penjelasan Pribadi/Private", "Panduan Visual Gambar Lengkap", "Contoh Konkret Langkah demi Langkah", "Diberikan Tutor Sebaya Teman"] },
       { id: 43, type: "swipe", cat: "Harapan", text: "Apakah kamu suka jika materi komputer dihubungkan dengan simulasi game?", leftLabel: "❌ Teori Saja", rightLabel: "🎮 Suka Banget!" },
@@ -321,6 +326,7 @@
     let currentIdx = 0;
     let userAnswers = {};
     let studentInfo = { name: '', class: '' };
+    let calculatedSummary = "";
     let teacherPassword = localStorage.getItem('teacher_pass') || 'guru123';
     let fetchedResponses = [];
 
@@ -364,7 +370,7 @@
       const container = document.getElementById('interactive-container');
       container.innerHTML = '';
 
-      // RENDER MEKANIK SESUAI TIPE
+      // RENDER MEKANIK
       if (q.type === "cards") {
         renderCardsMechanic(q, container);
       } else if (q.type === "slider") {
@@ -380,7 +386,6 @@
       gsap.fromTo('#quiz-card', { opacity: 0.8, scale: 0.98 }, { opacity: 1, scale: 1, duration: 0.2 });
     }
 
-    // MEKANIK 1: ROLE CARDS
     function renderCardsMechanic(q, container) {
       const div = document.createElement('div');
       div.className = "grid grid-cols-1 sm:grid-cols-2 gap-3";
@@ -408,7 +413,6 @@
       container.appendChild(div);
     }
 
-    // MEKANIK 2: INTERACTIVE SLIDER
     function renderSliderMechanic(q, container) {
       const currentVal = userAnswers[`q_${q.id}`] || "50%";
       const numVal = parseInt(currentVal) || 50;
@@ -442,7 +446,6 @@
       };
     }
 
-    // MEKANIK 3: SWIPE CARDS
     function renderSwipeMechanic(q, container) {
       const currentVal = userAnswers[`q_${q.id}`];
       const wrapper = document.createElement('div');
@@ -469,7 +472,6 @@
       wrapper.querySelector('#btn-swipe-right').onclick = () => saveAndAdvance(q.id, q.rightLabel);
     }
 
-    // MEKANIK 4: RANKER / PRIORITY DRAGGER
     function renderRankerMechanic(q, container) {
       const items = userAnswers[`q_${q.id}`] ? userAnswers[`q_${q.id}`].split(', ') : [...q.opts];
       const wrapper = document.createElement('div');
@@ -503,7 +505,6 @@
       };
     }
 
-    // ADVANCE & NAVIGATE LOGIC
     function saveAndAdvance(qId, val) {
       playSound(659, 'sine', 0.08);
       userAnswers[`q_${qId}`] = val;
@@ -539,10 +540,68 @@
       }
     }
 
+    function earlyFinish() {
+      if(confirm("Apakah kamu yakin ingin menyelesaikan kuis sekarang?")) {
+        finishGame();
+      }
+    }
+
+    // DINAMIK KALKULATOR TIPE GAYA BELAJAR SISWA
+    function calculateStyleSummary() {
+      let visualCount = 0;
+      let kinestheticCount = 0;
+      let auditoryCount = 0;
+      let analyticalCount = 0;
+
+      Object.values(userAnswers).forEach(ans => {
+        if(typeof ans === 'string') {
+          const lower = ans.toLowerCase();
+          if(lower.includes('visual') || lower.includes('gambar') || lower.includes('video') || lower.includes('desain') || lower.includes('slide')) visualCount++;
+          if(lower.includes('praktik') || lower.includes('gerak') || lower.includes('praktek') || lower.includes('fisik') || lower.includes('otak-atik') || lower.includes('coba')) kinestheticCount++;
+          if(lower.includes('dengar') || lower.includes('lisan') || lower.includes('cerita') || lower.includes('musik') || lower.includes('diskusi')) auditoryCount++;
+          if(lower.includes('logika') || lower.includes('pemikir') || lower.includes('sains') || lower.includes('teka-teki') || lower.includes('konsep')) analyticalCount++;
+        }
+      });
+
+      const maxScore = Math.max(visualCount, kinestheticCount, auditoryCount, analyticalCount);
+      
+      if (maxScore === 0) {
+        return {
+          title: "Explorer Adaptive",
+          desc: "Kamu tipe siswa serba bisa yang siap mengeksplorasi berbagai metode pembelajaran di kelas Informatika."
+        };
+      }
+
+      if (maxScore === kinestheticCount) {
+        return {
+          title: "Kinesthetic Practical Explorer",
+          desc: "Kamu paling cepat paham lewat simulasi, praktik komputer langsung, dan mengotak-atik program!"
+        };
+      } else if (maxScore === visualCount) {
+        return {
+          title: "Visual Media Strategist",
+          desc: "Kamu menyerap materi paling cepat dengan diagram visual, peta konsep, infografis, dan tayangan video."
+        };
+      } else if (maxScore === auditoryCount) {
+        return {
+          title: "Auditory Interactive Communicator",
+          desc: "Kamu sangat efektif belajar lewat ceramah penjelasan lisan, diskusi kelompok seru, dan media podcast audio."
+        };
+      } else {
+        return {
+          title: "Logical Analytical Thinker",
+          desc: "Kamu menyukai teka-teki logika, pemecahan masalah algoritma, dan tantangan analisis terstruktur."
+        };
+      }
+    }
+
     async function finishGame() {
       playSound(880, 'sine', 0.3);
 
-      // Show Result Screen
+      // Hitung profil dinamis
+      const resultObj = calculateStyleSummary();
+      calculatedSummary = resultObj.title;
+
       gsap.to('#screen-quiz', {
         opacity: 0, duration: 0.3, onComplete: () => {
           document.getElementById('screen-quiz').classList.add('hidden');
@@ -554,10 +613,20 @@
 
       document.getElementById('res-name').innerText = studentInfo.name;
       document.getElementById('res-class').innerText = `Kelas ${studentInfo.class}`;
+      document.getElementById('res-title').innerText = resultObj.title;
+      document.getElementById('res-desc').innerText = resultObj.desc;
 
-      const summaryText = "Visual-Practical Strategist";
+      // Kirim Data ke Supabase
+      await submitDataToSupabase();
+    }
 
-      // PENGIRIMAN AUTOMATIS KE SUPABASE DATABASE (Tabel responses)
+    async function submitDataToSupabase() {
+      const statusText = document.getElementById('supabase-status-text');
+      const retryBtn = document.getElementById('btn-retry-submit');
+      statusText.innerText = "⏳ Mengirim data ke Supabase...";
+      statusText.className = "text-amber-400 text-xs mt-1 animate-pulse font-bold";
+      retryBtn.classList.add('hidden');
+
       try {
         const { data, error } = await supabaseClient
           .from('responses')
@@ -566,15 +635,20 @@
               student_name: studentInfo.name,
               student_class: studentInfo.class,
               answers: userAnswers,
-              learning_style_summary: summaryText
+              learning_style_summary: calculatedSummary
             }
           ]);
 
         if (error) throw error;
-        console.log("Data sukses terkirim ke Supabase!");
+
+        statusText.innerText = "✅ Data Superpower Belajarmu berhasil terkirim ke Database Supabase!";
+        statusText.className = "text-emerald-400 text-xs mt-1 font-bold";
       } catch (err) {
-        console.warn("Gagal terhubung ke Supabase, menyimpan ke LocalStorage:", err);
-        localStorage.setItem(`response_${Date.now()}`, JSON.stringify({ studentInfo, userAnswers }));
+        console.error("Supabase error:", err);
+        statusText.innerText = "⚠️ Koneksi terputus! Klik tombol di bawah untuk kirim ulang.";
+        statusText.className = "text-rose-400 text-xs mt-1 font-bold";
+        retryBtn.classList.remove('hidden');
+        localStorage.setItem(`backup_response_${Date.now()}`, JSON.stringify({ studentInfo, userAnswers, calculatedSummary }));
       }
     }
 
@@ -598,23 +672,27 @@
     }
 
     async function loadStudentResponses() {
-      const { data, error } = await supabaseClient.from('responses').select('*').order('created_at', { ascending: false });
-      if (data && data.length > 0) {
-        fetchedResponses = data;
-        const tbody = document.getElementById('table-body-responses');
-        tbody.innerHTML = data.map(r => `
-          <tr class="border-b border-slate-800/80 hover:bg-slate-800/40">
-            <td class="p-2.5 font-bold text-white">${r.student_name}</td>
-            <td class="p-2.5 text-slate-400">${r.student_class}</td>
-            <td class="p-2.5 text-emerald-400 font-semibold">${r.learning_style_summary || 'Visual'}</td>
-          </tr>
-        `).join('');
-      } else {
-        document.getElementById('table-body-responses').innerHTML = `
-          <tr>
-            <td colspan="3" class="p-4 text-center text-slate-400 italic">Belum ada data siswa yang menyelesaikan kuis sampai Misi 50.</td>
-          </tr>
-        `;
+      try {
+        const { data, error } = await supabaseClient.from('responses').select('*').order('created_at', { ascending: false });
+        if (data && data.length > 0) {
+          fetchedResponses = data;
+          const tbody = document.getElementById('table-body-responses');
+          tbody.innerHTML = data.map(r => `
+            <tr class="border-b border-slate-800/80 hover:bg-slate-800/40">
+              <td class="p-2.5 font-bold text-white">${r.student_name}</td>
+              <td class="p-2.5 text-slate-400">${r.student_class}</td>
+              <td class="p-2.5 text-emerald-400 font-semibold">${r.learning_style_summary || 'Visual'}</td>
+            </tr>
+          `).join('');
+        } else {
+          document.getElementById('table-body-responses').innerHTML = `
+            <tr>
+              <td colspan="3" class="p-4 text-center text-slate-400 italic">Belum ada data siswa di database Supabase.</td>
+            </tr>
+          `;
+        }
+      } catch (e) {
+        console.error("Gagal membaca dari Supabase:", e);
       }
     }
 
